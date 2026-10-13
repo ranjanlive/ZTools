@@ -1,0 +1,78 @@
+name: Android Scaffold
+on:
+  push:
+    paths: ['TOOLS/android_project_scaffold/**', '.github/workflows/android-scaffold.yml']
+  pull_request:
+    paths: ['TOOLS/android_project_scaffold/**', '.github/workflows/android-scaffold.yml']
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: TOOLS/android_project_scaffold
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - name: Formatting
+        run: test -z "$(gofmt -l main.go main_test.go integration_test.go cmd/package/main.go)"
+      - run: go vet ./...
+      - run: go test -cover ./...
+      - name: Race detector
+        if: runner.os != 'Windows'
+        run: go test -race ./...
+      - name: Native binary, install and generation
+        run: |
+          CGO_ENABLED=0 go build -trimpath -o scaffold .
+          ./scaffold --version
+          ./scaffold --install "$RUNNER_TEMP/scaffold-agent-home"
+          ./scaffold --name MyApp --package com.example.smoke --output "$RUNNER_TEMP/scaffold-smoke"
+      - name: Real engine integration when engine source is present
+        if: hashFiles('zengine/go.mod') != ''
+        run: |
+          (cd ../../zengine && go build -o "$RUNNER_TEMP/scaffold-zagent" ./cmd/zagent)
+          SCAFFOLD_TEST_AGENT="$RUNNER_TEMP/scaffold-zagent" SCAFFOLD_TEST_BINARY="./scaffold" go test -run TestRealEngineIntegration -v .
+  android-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: TOOLS/android_project_scaffold
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-37.0" "build-tools;36.0.0" "platform-tools"
+      - name: Generate sample with punctuation and Unicode
+        run: |
+          go build -o scaffold .
+          ./scaffold --name 'Fish & Chips <"100%"> $value नमस्ते 🚀' --package com.example.cisample --output "$RUNNER_TEMP/android-sample" --sdk-path "$ANDROID_HOME"
+      - name: Build, lint, unit tests and instrumentation compilation
+        run: |
+          cd "$RUNNER_TEMP/android-sample"
+          ./gradlew assembleDebug assembleRelease lintDebug testDebugUnitTest assembleDebugAndroidTest --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-scaffold-validation
+          path: |
+            ${{ runner.temp }}/android-sample/app/build/reports/
+            ${{ runner.temp }}/android-sample/app/build/outputs/apk/

@@ -1,0 +1,4 @@
+**/dist/
+**/.verification/
+**/android_project_scaffold.exe
+/TOOLS/android_project_scaffold/android_project_scaffold

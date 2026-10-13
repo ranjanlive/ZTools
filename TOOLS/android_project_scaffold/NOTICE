@@ -1,0 +1,17 @@
+Android Project Scaffold
+SPDX-License-Identifier: Apache-2.0
+
+This tool adapts ranjanlive's Android Compose scaffolder. The template
+is an independent minimal Compose starter, not an official Android Studio product.
+
+Embedded Gradle wrapper scripts and gradle-wrapper.jar are generated with Gradle
+9.6.0 and retain their original Apache-2.0 licensing and copyright notices.
+Gradle wrapper scripts: Copyright 2015 the original authors.
+Upstream: https://github.com/gradle/gradle and https://gradle.org/
+Official wrapper SHA-256:
+497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7
+
+The release contains the wrapper, not the Android SDK, JDK, Gradle distribution,
+or Android libraries. Those are obtained separately under their own licenses.
+Generated projects retain Gradle licensing in gradle/wrapper/LICENSE and
+gradle/wrapper/NOTICE. Your application code may use your chosen license.

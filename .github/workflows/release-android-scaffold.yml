@@ -1,0 +1,36 @@
+name: Release Android Scaffold
+on:
+  push:
+    tags: ['android-scaffold-v*']
+permissions:
+  contents: write
+jobs:
+  validate:
+    uses: ./.github/workflows/android-scaffold.yml
+  package:
+    needs: validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: TOOLS/android_project_scaffold
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+          cache: false
+      - run: go test ./...
+      - run: go vet ./...
+      - name: Package six platforms and source
+        run: go run ./cmd/package --version "${GITHUB_REF_NAME#android-scaffold-v}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-scaffold-release
+          path: TOOLS/android_project_scaffold/dist/
+      - name: Create draft public release for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#android-scaffold-v}"
+          gh release create "$GITHUB_REF_NAME" dist/"$version"/* --verify-tag --draft --title "Android Project Scaffold $version" --notes-file CHANGELOG.md

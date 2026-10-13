@@ -1,0 +1,23 @@
+{
+  "name": "android_project_scaffold",
+  "description": "Create a new Kotlin/Jetpack Compose Android project offline using an embedded, pinned stable toolchain and Gradle wrapper. Never overwrites an existing destination. Agent output must be inside its workspace. Does not build the app, install SDKs, or download dependencies. Returns paths, versions, generated files and build instructions.",
+  "parameters": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["name", "package", "output"],
+    "properties": {
+      "name": {"type": "string", "minLength": 1, "maxLength": 80, "description": "App display/project name; Unicode supported."},
+      "package": {"type": "string", "maxLength": 150, "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$", "description": "Lowercase application ID without Java/Kotlin reserved identifiers."},
+      "output": {"type": "string", "minLength": 1, "description": "New project directory, relative to the workspace or absolute inside it. Existing directories are refused."},
+      "min_sdk": {"type": "integer", "minimum": 26, "maximum": 37, "description": "Minimum API level. Default 26."},
+      "template": {"type": "string", "enum": ["empty_activity"], "description": "Default empty_activity: minimal Compose screen, Material 3, adaptive icons, splash and tests."},
+      "sdk_path": {"type": "string", "description": "Optional existing Android SDK path to write into ignored local.properties. Omit for machine-independent generation."},
+      "dry_run": {"type": "boolean", "description": "Validate and list planned files without writing. Default false."}
+    }
+  },
+  "command": ["{dir}/android_project_scaffold", "--json"],
+  "input": "stdin_json",
+  "output": "json",
+  "timeout_seconds": 30,
+  "platforms": ["windows", "linux", "darwin"]
+}

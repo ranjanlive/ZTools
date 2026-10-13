@@ -1,0 +1,19 @@
+{
+  "id": "stable",
+  "revision": "2026-10-13",
+  "agp": "9.4.1",
+  "gradle": "9.6.0",
+  "gradle_sha256": "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01",
+  "wrapper_sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7",
+  "kotlin": "2.2.10",
+  "compose_bom": "2026.09.00",
+  "core_ktx": "1.19.1",
+  "activity_compose": "1.13.0",
+  "lifecycle": "2.11.0",
+  "splashscreen": "1.2.0",
+  "compile_sdk": 37,
+  "target_sdk": 37,
+  "default_min_sdk": 26,
+  "minimum_min_sdk": 26,
+  "java_minimum": 17
+}
