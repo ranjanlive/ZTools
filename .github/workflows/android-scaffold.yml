@@ -71,7 +71,29 @@ jobs:
       - name: Build, lint, unit tests and instrumentation compilation
         run: |
           cd "$RUNNER_TEMP/android-sample"
-          ./gradlew assembleDebug assembleRelease lintDebug testDebugUnitTest assembleDebugAndroidTest --no-daemon
+          # Use Maven Central's alternate official HTTPS endpoint when the
+          # runner receives 403 from its default endpoint. Templates stay unchanged.
+          init_args=()
+          artifact="org/jetbrains/kotlin/kotlin-stdlib/2.3.21/kotlin-stdlib-2.3.21.pom"
+          if ! curl --fail --silent --show-error --retry 2 "https://repo.maven.apache.org/maven2/$artifact" > /dev/null; then
+            curl --fail --silent --show-error --retry 2 "https://repo1.maven.org/maven2/$artifact" > /dev/null
+            cat > "$RUNNER_TEMP/central-endpoint.gradle" <<'GRADLE'
+          def selectCentralEndpoint = { repositories ->
+              repositories.withType(org.gradle.api.artifacts.repositories.MavenArtifactRepository).configureEach {
+                  if (url.host == 'repo.maven.apache.org') {
+                      url = uri('https://repo1.maven.org/maven2')
+                  }
+              }
+          }
+          settingsEvaluated { settings ->
+              selectCentralEndpoint(settings.pluginManagement.repositories)
+              selectCentralEndpoint(settings.dependencyResolutionManagement.repositories)
+          }
+          allprojects { project -> selectCentralEndpoint(project.buildscript.repositories) }
+          GRADLE
+            init_args=(--init-script "$RUNNER_TEMP/central-endpoint.gradle")
+          fi
+          ./gradlew "${init_args[@]}" assembleDebug assembleRelease lintDebug testDebugUnitTest assembleDebugAndroidTest --no-daemon
       - uses: actions/upload-artifact@v4
         if: always()
         with:
